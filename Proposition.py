@@ -4,7 +4,7 @@ class Proposition:
     def __init__(self, premise):
         # Getting all the tokens
         self.tokens = premise.split(" ")
-        if self.tokens[0][0] == "(" and self.tokens[-1][-1] == ")":
+        while self.tokens[0][0] == "(" and self.tokens[-1][-1] == ")":
             self.tokens[0] = self.tokens[0][1:]
             self.tokens[-1] = self.tokens[-1][:-1]
         # Initialisation for tokens given as a statement
@@ -12,7 +12,7 @@ class Proposition:
         combinedToken = ""
         parantheses = 0
         paranthesesLoop = False
-        self.nestedToken = []
+        self.nestedToken = {}
         # Go through the elements to find statements in tokens
         while idx < len(self.tokens):
             # Look for open paranthesis
@@ -38,7 +38,7 @@ class Proposition:
                 # Write the statement as a seperate token, and initialise it as a proposition
                 self.tokens[idx] = combinedToken
                 del self.tokens[idx0:idx]
-                self.nestedToken.append(Proposition(combinedToken))
+                self.nestedToken[str(idx0)] = Proposition(combinedToken)
                 idx = idx0
             # Iterate through the loop
             idx += 1
@@ -67,8 +67,8 @@ class Proposition:
                     addMessage = addMessage.upper().replace("AND", "∧")
                     addMessage = addMessage.upper().replace("OR", "∨")
                     addMessage = addMessage.upper().replace("NOT", "¬")
-                    addMessage = addMessage.upper().replace("IF", "→")
                     addMessage = addMessage.upper().replace("IFF", "↔")
+                    addMessage = addMessage.upper().replace("IF", "→")
                     addMessage = addMessage.replace(" ", "")
                 message += addMessage
                 idxToken += 1
@@ -83,12 +83,24 @@ class Proposition:
         
         # Return the message
         return message
-            
+    
+    def update_nestedToken(self):
+        for tokenKeys, tokenValues in list(self.nestedToken.items()):
+            tokenVal = f"({tokenValues})"
+            if str(tokenVal) != str(Proposition(self.order[int(tokenKeys)])):
+                self.order[int(tokenKeys)] = f"({' '.join(tokenValues.order)})"
+                self.tokens = self.order.copy()
+                operations = ["AND", "OR", "NOT", "IF", "IFF"]
+                self.operations = [oper for oper in self.tokens if oper.upper() in operations]
+                for idx, operation in enumerate(self.operations):
+                    self.tokens.remove(operation)
 
 # Debugging
 if __name__ == "__main__":
     logic = Proposition("A and (not B or (C and A)) and (D or B)")
     print(logic)
-    print(logic.nestedToken[0])
-    print(logic.nestedToken[0].nestedToken[0])
-    print(logic.nestedToken[1])
+    nestedList = list(logic.nestedToken.keys())
+    nestedListList = list(logic.nestedToken[list(logic.nestedToken.keys())[0]].nestedToken.keys())
+    print(logic.nestedToken[nestedList[0]])
+    print(logic.nestedToken[nestedList[0]].nestedToken[nestedListList[0]])
+    print(logic.nestedToken[nestedList[1]])

@@ -1,122 +1,100 @@
 # Import all necessary libraries
 import numpy as np
-import Proposition
+from Proposition import Proposition
 
 # Change all instance of an operation
-def change_ops(opOld, opNew, addNot = None):
-    pass
-    ## Update embedded objects in the first premise
-    #if hasattr(self, 'obj1'):
-    #    self.obj1 = self.obj1.change_ops(opOld, opNew, addNot)
-    #    self.p = f"({self.obj1})"
-    ## Update embedded objects in the second premise
-    #if hasattr(self, 'obj2'):
-    #    self.obj2 = self.obj2.change_ops(opOld, opNew, addNot)
-    #    self.q = f"({self.obj2})"
-    ## Update the operation
-    #if self.op.upper() == opOld.upper():
-    #    self.op = opNew
-    #    # Negate first premise
-    #    if addNot.upper() == "RIGHT":
-    #        self.p = str(Proposition(premise1 = self.obj1 if hasattr(self, 'obj1') else self.p, operation = "not"))
-    #    # Negate second premise
-    #    elif addNot.upper() == "LEFT":
-    #        self.q = str(Proposition(premise2 = self.obj2 if hasattr(self, 'obj2') else self.q, operation = "not"))
-    #    
-    ## Return the object
-    #return self
+def change_token(prop, tokenOld, tokenNew):
+    tokenOld = Proposition(tokenOld)
+    # Go deeper if a nested token exist
+    if hasattr(prop, 'nestedToken'):
+        for idx, token in list(prop.nestedToken.items()):
+            prop.nestedToken[idx] = change_token(token, " ".join(tokenOld.order), tokenNew)
+        prop.update_nestedToken()
+    
+    # Find the structure used for the old token
+    sequence = []
+    idxProp = 0
+    while idxProp < len(prop.operations):
+        if prop.operations[idxProp].upper() == tokenOld.operations[0].upper():
+            idx0 = idxProp
+            while idxProp < len(prop.operations) or idxProp - idx0 < len(tokenOld.operations):
+                if prop.operations[idxProp].upper() == tokenOld.operations[idxProp - idx0].upper():
+                    idxProp += 1
+                else:
+                    idxProp = idx0
+                    break
+            if idxProp - idx0 == len(tokenOld.operations):
+                sequence.append(idx0)
+                idxProp = idx0
+        idxProp += 1
+
+    # Get the part that should be changed
+    if len(sequence) > 0:
+        for seq in sequence:
+            beforeProp = prop.order[0:2 * seq]
+            seqProp = prop.order[2 * seq:2 * seq + 2 * len(tokenOld.operations) + 1]
+            afterProp = prop.order[2 * seq + 1 + 2 * len(tokenOld.operations) + 1:-1]
+
+        # Replace the tokens of the new structure with the tokens of the old structure
+        token = Proposition(tokenNew)
+        seq = Proposition(" ".join(seqProp))
+        idx = 0
+        for idxToken, val in enumerate(token.order):
+            if val == token.tokens[idx]:
+                token.order[idxToken] = seq.tokens[idx]
+                idx += 1
+        beforeStatement = " ".join(beforeProp) + " " if len(beforeProp) > 0 else ""
+        seqStatement = " ".join(token.order)
+        afterStatement = " ".join(afterProp) if len(afterProp) > 0 else ""
+        statement = beforeStatement + seqStatement + afterStatement
+        token = Proposition(statement)
+
+        # Return the token
+        return token
+    
+    # Return the token
+    return prop
 
 # Applying the De Morgan law (WIP)
-def De_Morgan():
-    pass
-    ## Update embedded objects in the first premise
-    #if hasattr(self, 'obj1'):
-    #    self.obj1 = self.obj1.De_Morgan()
-    #    self.p = f"({self.obj1})"
-    ## Update embedded objects in the second premise
-    #if hasattr(self, 'obj2'):
-    #    self.obj2 = self.obj2.De_Morgan()
-    #    self.q = f"({self.obj2})"
-    ## Apply De Morgan's laws
-    #if self.op.upper() == "NOT" and hasattr(self, 'obj1'):
-    #    # When there is double negation
-    #    if self.obj1.op.upper() == "NOT":
-    #        self = self.obj1.obj1 if hasattr(self.obj1, 'obj1') else self.obj1.p
-    #    # When there is and in negation
-    #    elif self.obj1.op.upper() == "AND":
-    #        self = Proposition(
-    #            Proposition(premise1 = self.obj1.obj1 if hasattr(self.obj1, 'obj1') else self.obj1.p, operation = "not"),
-    #            Proposition(premise1 = self.obj1.obj2 if hasattr(self.obj1, 'obj2') else self.obj1.q, operation = "not"),
-    #            operation = "or"
-    #        )
-    #    # When there is or in negation
-    #    elif self.obj1.op.upper() == "OR":
-    #        self = Proposition(
-    #            Proposition(premise1 = self.obj1.obj1 if hasattr(self.obj1, 'obj1') else self.obj1.p, operation = "not"),
-    #            Proposition(premise1 = self.obj1.obj2 if hasattr(self.obj1, 'obj2') else self.obj1.q, operation = "not"),
-    #            operation = "and"
-    #        )
-#
-    ## Return the object
-    #return self
+def De_Morgan(prop, beforeNot = False):
+    if hasattr(prop, 'nestedToken'):
+        for idx, token in list(prop.nestedToken.items()):
+            prop.nestedToken[idx] = De_Morgan(token, False)
+        prop.update_nestedToken()
+
+    if "NOT" in prop.operations.upper():
+        idx = prop.operations.index("NOT")
+        if hasattr(prop, 'nestedToken'):
+            prop.nestedToken[idx] = De_Morgan(token, True)
+            prop.update_nestedToken()
+        
+    if beforeNot and (prop.operations.upper() == "NOT" or prop.operations.upper() == "AND" or prop.operations.upper() == "OR"):
+        if prop.operations.upper() == "NOT":
+            pass
+        elif prop.operations.upper() == "AND":
+            pass
+        elif prop.operations.upper() == "OR":
+            pass
+        token = Proposition(token)
+        return token
+            
+    return prop
     
-# Expanding the statement
-def expansion():
+# Expanding the statement (WIP)
+def expansion(prop):
     pass
-    ## Update embedded objects in the first premise
-    #if hasattr(self, 'obj1'):
-    #    self.obj1 = self.obj1.expansion()
-    #    self.p = f"({self.obj1})"
-    ## Update embedded objects in the second premise
-    #if hasattr(self, 'obj2'):
-    #    self.obj2 = self.obj2.expansion()
-    #    self.q = f"({self.obj2})"
-    ## Apply the expansion for single premise at right
-    #if self.op.upper() == "OR" and not hasattr(self, 'obj1') and hasattr(self, 'obj2'):
-    #    print(self)
-    #    self = Proposition(
-    #        Proposition(premise1 = self.p, premise2 = self.obj2.obj1 if hasattr(self.obj2, 'obj1') else self.obj2.p, operation = "or"),
-    #        Proposition(premise1 = self.p, premise2 = self.obj2.obj2 if hasattr(self.obj2, 'obj2') else self.obj2.q, operation = "or"),
-    #        operation = "and"
-    #    )
-    ## Apply the expansion for single premise at left
-    #elif self.op.upper() == "OR" and hasattr(self, 'obj1') and not hasattr(self, 'obj2'):
-    #    self = Proposition(
-    #        Proposition(premise1 = self.obj1.obj1 if hasattr(self.obj1, 'obj1') else self.obj1.p, premise2 = self.q, operation = "or"),
-    #        Proposition(premise1 = self.obj1.obj2 if hasattr(self.obj1, 'obj2') else self.obj1.q, premise2 = self.q, operation = "or"),
-    #        operation = "and"
-    #    )
-    ## Apply the expansion for premises
-    #elif self.op.upper() == "OR" and hasattr(self, 'obj1') and hasattr(self, 'obj2'):
-    #    self = Proposition(
-    #        Proposition(premise1 = self.obj1, premise2 = self.obj2.obj1 if hasattr(self.obj2, 'obj1') else self.obj2.p, operation = "or"),
-    #        Proposition(premise1 = self.obj1, premise2 = self.obj2.obj2 if hasattr(self.obj2, 'obj2') else self.obj2.q, operation = "or"),
-    #        operation = "and"
-    #    )
-    ## Return the object
-    #return self
 
 # Get the CNF form of the proposition
 # Gotten from https://personal.cis.strath.ac.uk/robert.atkey/cs208/converting-to-cnf.html
 def convert_to_CNF(proposition):
     # Step 1: Convert all "if ... then ..." to negated or (P -> Q to not P or Q)
-    oldProp = ""
-    while str(proposition) != str(oldProp):
-        print(proposition)
-        oldProp = proposition
-        proposition = proposition.change_ops("if", "or", "right")
+    proposition = change_token(proposition, "X if Y", "not X or Y")
+
     # Step 2: Convert to Negation Normal Form (NNF) by putting a negation in front of all premises (expand with De Morgan to simplify)
-    oldProp = ""
-    while str(proposition) != str(oldProp):
-        print(proposition)
-        oldProp = proposition
-        proposition = proposition.De_Morgan()
+    
+
     # Step 3: Expand the ands and ors operators
-    oldProp = ""
-    while str(proposition) != str(oldProp):
-        print(proposition)
-        oldProp = proposition
-        proposition = proposition.expansion()
+    
     
     return proposition
     
@@ -127,10 +105,9 @@ def resolution(CNF):
 
 # Debugging
 if __name__ == "__main__":
-    prop1 = Proposition("a", "b", "if")
-    prop2 = Proposition("a", prop1, "and")
-    prop3 = Proposition(prop2, "c", "if")
-    print(prop3)
-    CNF = convert_to_CNF(prop3)
-    print(CNF)
+    logic = Proposition("(A and (A if B)) if C")
+    print(logic)
+    logic = change_token(logic, "X if Y", "not X or Y")
+    print(logic)
+
     
