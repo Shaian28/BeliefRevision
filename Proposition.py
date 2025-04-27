@@ -1,18 +1,41 @@
+# Import all necessary libraries
+import sympy as sp
+import pandas as pd
+
 # Class for proposition
 class Proposition:
     # Initialise the object
     def __init__(self, premise):
         # Getting all the tokens
         self.tokens = premise.split(" ")
+        # Removing the unnecessary paranthesis at the start and end of the premise
         while self.tokens[0][0] == "(" and self.tokens[-1][-1] == ")":
-            self.tokens[0] = self.tokens[0][1:]
-            self.tokens[-1] = self.tokens[-1][:-1]
+            parantheses = 0
+            # Going through the premise to ceck if the paranthesis are necessary
+            for idx, char in enumerate(premise):
+                # Count the paranthesis
+                if char == "(":
+                    parantheses += 1
+                elif char == ")":
+                    parantheses -= 1
+                # When the paranthesis has reached 0
+                if parantheses == 0:
+                    # Break out of the loop
+                    if idx < len(premise) - 1:
+                        break
+                    # Remove the paranthesis
+                    else:
+                        self.tokens[0] = self.tokens[0][1:]
+                        self.tokens[-1] = self.tokens[-1][:-1]
+            # Break out of the loop
+            if idx < len(premise) - 1:
+                break
         # Initialisation for tokens given as a statement
         idx = 0
         combinedToken = ""
         parantheses = 0
         paranthesesLoop = False
-        self.nestedToken = {}
+        self.nestedToken = []
         # Go through the elements to find statements in tokens
         while idx < len(self.tokens):
             # Look for open paranthesis
@@ -38,7 +61,7 @@ class Proposition:
                 # Write the statement as a seperate token, and initialise it as a proposition
                 self.tokens[idx] = combinedToken
                 del self.tokens[idx0:idx]
-                self.nestedToken[str(idx0)] = Proposition(combinedToken)
+                self.nestedToken.append(Proposition(combinedToken))
                 idx = idx0
             # Iterate through the loop
             idx += 1
@@ -83,24 +106,65 @@ class Proposition:
         
         # Return the message
         return message
+
+    # Get the symbolic expression that can be used for sympy
+    def symbolic_form(self, depth = 0):
+        depth += 1
+        # Go deeper if a nested token exist and gather the variables
+        allVariable = []
+        if len(self.nestedToken) > 0:
+            for idx, _ in enumerate(self.nestedToken):
+                variable = self.nestedToken[idx].symbolic_form(depth)
+                for var in variable:
+                    if var not in allVariable:
+                        allVariable.append(var)
+        # Gather the vaiables when there is no nested tokens
+        for token in self.tokens:
+            if token not in allVariable and token.count("(") == 0:
+                allVariable.append(token)
+        
+        # Turn variable to symbols when going back to the top token
+        if depth == 1:
+            self.symbolic = sp.symbols(" ".join(allVariable))
+            expression = " ".join(self.order)
+
+            # Turn operations into there equivalent sympy operation
+            expression = expression.upper().replace("AND", "&")
+            expression = expression.upper().replace("OR", "|")
+            expression = expression.upper().replace("NOT", "~")
+            expression = expression.upper().replace("IFF", "==")
+            expression = expression.upper().replace("IF", ">>")
+
+            # Replace the variables
+            for idx, symbol in enumerate(self.symbolic):
+                expression = expression.replace(str(symbol), f"self.symbolic[{idx}]")
+            
+            # Save the symbolic expression
+            self.expression = expression
+
+        # Retutn alle non-repeating variables in the token
+        return allVariable
     
-    def update_nestedToken(self):
-        for tokenKeys, tokenValues in list(self.nestedToken.items()):
-            tokenVal = f"({tokenValues})"
-            if str(tokenVal) != str(Proposition(self.order[int(tokenKeys)])):
-                self.order[int(tokenKeys)] = f"({' '.join(tokenValues.order)})"
-                self.tokens = self.order.copy()
-                operations = ["AND", "OR", "NOT", "IF", "IFF"]
-                self.operations = [oper for oper in self.tokens if oper.upper() in operations]
-                for idx, operation in enumerate(self.operations):
-                    self.tokens.remove(operation)
+    # Make a truth table of the expression
+    def truth_table(self):
+        # Make sure that the object has a symbolic form
+        if not hasattr(self, "symbolic"):
+            self.symbolic_form()
+        # Generate a truth table
+        variables = list(self.symbolic)
+        num_rows = 2 ** len(variables)
+        truth_values = [[(i >> j) & 1 for j in range(len(variables) - 1, -1, -1)] for i in range(num_rows)]
+        self.TruthTable = pd.DataFrame(truth_values, columns=[str(var) for var in variables])
+        
+        # Evaluate the expression for each row in the truth table
+        def truth_calc(row):
+            exprSymbol = sp.lambdify(list(self.symbolic), eval(self.expression))
+            return exprSymbol(*row)
+        self.TruthTable['Result'] = self.TruthTable.apply(truth_calc, axis = 1)
 
 # Debugging
 if __name__ == "__main__":
     logic = Proposition("A and (not B or (C and A)) and (D or B)")
     print(logic)
-    nestedList = list(logic.nestedToken.keys())
-    nestedListList = list(logic.nestedToken[list(logic.nestedToken.keys())[0]].nestedToken.keys())
-    print(logic.nestedToken[nestedList[0]])
-    print(logic.nestedToken[nestedList[0]].nestedToken[nestedListList[0]])
-    print(logic.nestedToken[nestedList[1]])
+    logic.truth_table()
+    print(logic.TruthTable)
