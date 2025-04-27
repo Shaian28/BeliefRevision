@@ -125,7 +125,7 @@ class Proposition:
         
         # Turn variable to symbols when going back to the top token
         if depth == 1:
-            self.symbolic = sp.symbols(" ".join(allVariable))
+            self.symbolic = sp.symbols(" ".join(allVariable).upper())
             expression = " ".join(self.order)
 
             # Turn operations into there equivalent sympy operation
@@ -136,8 +136,8 @@ class Proposition:
             expression = expression.upper().replace("IF", ">>")
 
             # Replace the variables
-            for idx, symbol in enumerate(self.symbolic):
-                expression = expression.replace(str(symbol), f"self.symbolic[{idx}]")
+            #for idx, symbol in enumerate(self.symbolic):
+            #    expression = expression.replace(str(symbol), f"self.symbolic[{idx}]")
             
             # Save the symbolic expression
             self.expression = expression
@@ -158,8 +158,11 @@ class Proposition:
         
         # Evaluate the expression for each row in the truth table
         def truth_calc(row):
-            exprSymbol = sp.lambdify(list(self.symbolic), eval(self.expression))
-            return exprSymbol(*row)
+            expr = sp.parsing.sympy_parser.parse_expr(self.expression, local_dict = {str(sym): sym for sym in self.symbolic}, evaluate = False)
+            exprLam = sp.lambdify(self.symbolic, expr)
+            return exprLam(*row)
+        
+        # Add the final results in the truth table
         self.TruthTable['Result'] = self.TruthTable.apply(truth_calc, axis = 1)
 
 # Debugging

@@ -3,6 +3,7 @@ import numpy as np
 from Proposition import Proposition
 
 # Get the CNF form of the proposition
+# https://en.wikipedia.org/wiki/Conjunctive_normal_form#Conversion_by_semantic_means
 def convert_to_CNF(proposition):
     # Make a truth table for the proposition
     proposition.truth_table()
@@ -20,9 +21,9 @@ def convert_to_CNF(proposition):
             # Find out if the symbolic values in the row is 1 or 0
             for symbol, value in zip(proposition.symbolic, row[:-1]):
                 if value:
-                    clause.append(str(symbol))
-                else:
                     clause.append(f"not {symbol}")
+                else:
+                    clause.append(str(symbol))
             # Complete the sentence
             sentence += "(" + " or ".join(clause) + ")"
     # Turn the sentence into a proposition
@@ -33,12 +34,17 @@ def convert_to_CNF(proposition):
     
 
 # Give the resolution alghorithm
-def resolution(CNF):
-    pass
+def resolution(CNF, complement):
+    clauses = str(CNF).split("∧")
+    clauses.append(str(complement))
+    print(clauses)
 
 # Debugging
 if __name__ == "__main__":
-    logic = Proposition("(A and (A if B)) or C")
-    print(convert_to_CNF(logic))
+    logic = Proposition("R iff P or S")
+    complement = Proposition("not P")
+    logic.truth_table()
+    CNF = convert_to_CNF(logic)
+    resolution(CNF, complement)
 
     
