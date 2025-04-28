@@ -1,5 +1,4 @@
 # Import all necessary libraries
-import numpy as np
 from Proposition import Proposition
 
 # Get the CNF form of the proposition
@@ -31,7 +30,6 @@ def convert_to_CNF(proposition):
 
     # Return the CNF form
     return CNF
-    
 
 # Give the resolution alghorithm
 def resolution(proposition, complement):
@@ -91,9 +89,8 @@ def resolution(proposition, complement):
         # Remember the clauses now
         newClausString = [" ".join(claus.order) for claus in clauses]
         # There is not an entailment if no clauses was added
-        if oldClausString == newClausString:
+        if oldClausString == newClausString and not entail:
             notEntail = True
-            entail = False
     
     # Print the result
     result = " ".join(complement.order)
@@ -113,7 +110,6 @@ def resolution(proposition, complement):
 
 # Debugging
 if __name__ == "__main__":
-    logic = Proposition("R iff P or S")
-    complement = Proposition("P")
+    logic = Proposition("(Aif B) and (B if C)")
+    complement = Proposition("not A")
     resolution(logic, complement)
-    

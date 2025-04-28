@@ -126,6 +126,7 @@ class Proposition:
         # Turn variable to symbols when going back to the top token
         if depth == 1:
             self.symbolic = sp.symbols(" ".join(allVariable).upper())
+            self.symbolic = list(self.symbolic) if type(self.symbolic) == tuple else [self.symbolic]
             expression = " ".join(self.order)
 
             # Turn operations into there equivalent sympy operation
@@ -134,10 +135,6 @@ class Proposition:
             expression = expression.upper().replace("NOT", "~")
             expression = expression.upper().replace("IFF", "==")
             expression = expression.upper().replace("IF", ">>")
-
-            # Replace the variables
-            #for idx, symbol in enumerate(self.symbolic):
-            #    expression = expression.replace(str(symbol), f"self.symbolic[{idx}]")
             
             # Save the symbolic expression
             self.expression = expression
