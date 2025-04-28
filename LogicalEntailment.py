@@ -110,6 +110,6 @@ def resolution(proposition, complement):
 
 # Debugging
 if __name__ == "__main__":
-    logic = Proposition("(Aif B) and (B if C)")
-    complement = Proposition("not A")
+    logic = Proposition("R if P or S")
+    complement = Proposition("P")
     resolution(logic, complement)
