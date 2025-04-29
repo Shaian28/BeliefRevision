@@ -26,19 +26,30 @@ def convert_to_CNF(proposition):
             # Complete the sentence
             sentence += "(" + " or ".join(clause) + ")"
     # Turn the sentence into a proposition
-    CNF = Proposition(sentence)
+    CNF = Proposition(sentence) if len(sentence) > 0 else None
+    if CNF is None:
+        print(f"The statement {proposition} is a tautology")
 
     # Return the CNF form
-    return CNF
+    return CNF 
 
 # Give the resolution alghorithm
-def resolution(proposition, complement):
+def resolution(KB, phi):
     # Convert to CNF
-    CNF = convert_to_CNF(proposition)
+    KBCNF = convert_to_CNF(KB)
+
+    # Finding simplifying the complement of phi
+    phiString = " ".join(phi.order)
+    notPhi = Proposition("not " + phiString if len(phiString) == 1 else "not (" + phiString + ")")
+    phiCNF = convert_to_CNF(notPhi)
 
     # Get the clauses from CNF
-    clauses = (" ".join(CNF.order)).split(" and ")
-    clauses.append(" ".join(complement.order))
+    if KBCNF is not None:
+        clauses = (" ".join(KBCNF.order)).upper().split(" AND ")
+    else:
+        clauses = []
+    if phiCNF is not None:
+        clauses.extend((" ".join(phiCNF.order)).upper().split(" AND "))
     clauses = [Proposition(claus) for claus in clauses]
     newClauses = []
 
@@ -60,8 +71,8 @@ def resolution(proposition, complement):
                             # Check if the two clauses are the same, but with a negation in one of te tokens
                             if token == order and claus2.order[idx - 1].upper() == "NOT":
                                 # Reassemble the clause
-                                claus1List = claus1String.split(" or ")
-                                claus2List = claus2String.split(" or ")
+                                claus1List = claus1String.upper().split(" OR ")
+                                claus2List = claus2String.upper().split(" OR ")
                                 idxList = []
                                 # Find the complementary pair of the token
                                 for idxElem, elem1 in enumerate(claus1List):
@@ -93,23 +104,25 @@ def resolution(proposition, complement):
             notEntail = True
     
     # Print the result
-    result = " ".join(complement.order)
-    result = result.upper().removeprefix("NOT ") if result.upper().startswith("NOT ") else result
-    print(f"KB = {proposition}")
-    print(f"φ = {result}")
+    print(f"KB = {KB}")
+    print(f"φ = {phi}")
     # There is entailment
     if entail:
-        print(f"{proposition} ⊨ {result}")
+        print(f"{KB} ⊨ {phi}")
         print("KB does entail the result")
+
+        # Return a truth value
+        return True
     # There is no entailment
     else:
-        print(f"{proposition} ⊭ {result}")
+        print(f"{KB} ⊭ {phi}")
         print("KB does not entail the result")
-                                
 
+        # Return a false value
+        return False
 
 # Debugging
 if __name__ == "__main__":
     logic = Proposition("R iff P or S")
-    complement = Proposition("P")
-    resolution(logic, complement)
+    inference = Proposition("not P")
+    print(resolution(logic, inference))

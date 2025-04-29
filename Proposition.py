@@ -11,7 +11,7 @@ class Proposition:
         # Removing the unnecessary paranthesis at the start and end of the premise
         while self.tokens[0][0] == "(" and self.tokens[-1][-1] == ")":
             parantheses = 0
-            # Going through the premise to ceck if the paranthesis are necessary
+            # Going through the premise to check if the paranthesis are necessary
             for idx, char in enumerate(premise):
                 # Count the paranthesis
                 if char == "(":
