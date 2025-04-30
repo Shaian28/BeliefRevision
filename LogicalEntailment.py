@@ -1,5 +1,6 @@
 # Import all necessary libraries
 from Proposition import Proposition
+import numpy as np
 
 # Get the CNF form of the proposition
 # https://en.wikipedia.org/wiki/Conjunctive_normal_form#Conversion_by_semantic_means
@@ -64,30 +65,58 @@ def resolution(KB, phi):
             claus1String = " ".join(claus1.order)
             for claus2 in clauses:
                 claus2String = " ".join(claus2.order)
+                # Skipping the same clauses
+                if claus1String == claus2String:
+                    continue
                 # Compare the different clauses tokens
                 for token in claus1.tokens:
+                    # Skip the elements, that doesn't have a negation
+                    idxToken = claus1.order.index(token) if token in claus1.order else -1
+                    check = claus1.order[idxToken - 1].upper() == "NOT" if idxToken > 0 else False
+                    if check:
+                        continue
+                    idxList = []
+                    # Go through all the tokens and operations in the second clause
                     for idx, order in enumerate(claus2.order):
-                        if idx > 0 and claus1String != claus2String:
-                            # Check if the two clauses are the same, but with a negation in one of te tokens
-                            if token == order and claus2.order[idx - 1].upper() == "NOT":
-                                # Reassemble the clause
-                                claus1List = claus1String.upper().split(" OR ")
-                                claus2List = claus2String.upper().split(" OR ")
-                                idxList = []
-                                # Find the complementary pair of the token
-                                for idxElem, elem1 in enumerate(claus1List):
-                                    for elem2 in claus2List:
-                                        if elem1 in elem2 and not (elem1.upper().startswith("NOT ") == elem2.upper().startswith("NOT ")):
-                                            idxList.append(idxElem)
-                                # Delete the tokens with a complementary pair
-                                for idxEl in reversed(idxList):
-                                    del claus1List[idxEl]
-                                # There is an entailment if the resulting clauses lead to an empty clause
-                                if len(claus1List) == 0:
-                                    entail = True
-                                # Add the new clause
-                                else:
-                                    newClauses.append(Proposition(" and ".join(claus1List)))
+                        # Check if the two clauses are the same, but with a negation in one of the tokens
+                        check = claus2.order[idx - 1].upper() == "NOT" if idx > 0 else False
+                        if token == order and check:
+                            # Reassemble the clause
+                            claus1List = claus1String.upper().split(" OR ")
+                            claus2List = claus2String.upper().split(" OR ")
+                            addClaus = claus1List.copy() if np.argmax([len(claus1List), len(claus2List)]) == 0 else claus2List.copy()
+                            compareClaus = claus2List.copy() if np.argmax([len(claus1List), len(claus2List)]) == 0 else claus1List.copy()
+                            idxList = []
+                            # Find the complementary pair of the token
+                            for idxElem, elem1 in enumerate(addClaus):
+                                for elem2 in compareClaus:
+                                    if (elem1 in elem2 or elem2 in elem1) and (elem1.upper()[0:4] == "NOT ") != (elem2.upper()[0:4]  == "NOT "):
+                                        idxList.append(idxElem)
+                            # Delete the tokens with a complementary pair
+                            for idxEl in reversed(idxList):
+                                del addClaus[idxEl]
+                            # There is an entailment if the resulting clauses lead to an empty clause
+                            if len(addClaus) == 0:
+                                entail = True
+                                break
+                            # Add the new clause
+                            else:
+                                newClauses.append(Proposition(" OR ".join(addClaus)))
+                            # Breaking the loop to continue to the next order
+                            if len(idxList) > 0:
+                                break
+                    # Breaking the loop to continue to the next token or completely go out of the loop
+                    if len(idxList) > 0 or entail:
+                        break
+                # Break out of the loop
+                if entail:
+                    break
+            # Break out of the loop
+            if entail:
+                break
+        # Break out of the loop
+        if entail:
+            break
         
         # Remember the clauses from before
         oldClausString = [" ".join(claus.order) for claus in clauses]
@@ -121,7 +150,7 @@ def resolution(KB, phi):
         # Return a false value
         return False
 
-# Debugging
+# Example
 if __name__ == "__main__":
     logic = Proposition("R iff P or S")
     inference = Proposition("not P")
