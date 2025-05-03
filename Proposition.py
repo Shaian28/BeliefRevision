@@ -30,6 +30,9 @@ class Proposition:
             # Break out of the loop
             if idx < len(premise) - 1:
                 break
+        # Rewrite the premise as string
+        self.premise = " ".join(self.tokens)
+        
         # Initialisation for tokens given as a statement
         idx = 0
         combinedToken = ""
