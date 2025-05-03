@@ -26,5 +26,5 @@ def contract_belief_base(belief_base, target_phi):
 def combine_propositions(propositions):
     if not propositions:
         return Proposition("A and not A")  # A contradiction
-    combined_str = " and ".join([" ".join(p.order) for p in propositions])
+    combined_str = "(" + ") and (".join([p.premise for p in propositions]) + ")"
     return Proposition(combined_str)
