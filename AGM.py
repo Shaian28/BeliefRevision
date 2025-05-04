@@ -31,7 +31,7 @@ def vacuity(Belief, phi):
 def consistency(Belief, phi):
     oldBase = copy.deepcopy(Belief)
     newBase = contract_belief_base(oldBase.beliefs, phi)
-    return consistent(newBase)
+    return consistent(newBase) if len(newBase) > 0 else True
 
 def extensionality(Belief, phi1, phi2):
     oldBase = copy.deepcopy(Belief)
@@ -44,8 +44,8 @@ def extensionality(Belief, phi1, phi2):
     return True
 
 def consistent(Belief):
-    oldBase = copy.deepcopy(Belief)
-    combined_beliefs = Proposition("(" + ") and (".join([belief.premise for belief, _ in oldBase]) + ")")
+    base = copy.deepcopy(Belief)
+    combined_beliefs = Proposition("(" + ") and (".join([belief.premise for belief, _ in base.beliefs]) + ")")
     combined_beliefs.symbolic_form()
     local_sym = {str(sym): sym for sym in combined_beliefs.symbolic}
     local_sym.update({'Eq': sp.Equivalent})
