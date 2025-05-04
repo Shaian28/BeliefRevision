@@ -36,12 +36,10 @@ def print_belief_base(belief_base):
 def main():
     print("=== Belief Revision Engine ===")
     belief_base = BeliefBase()
-    #belief_base.expand("A and B", 5)
-    #belief_base.expand("C if A", 5)
 
     while True:
         print("\nOptions:")
-        print("1. Expand belief base with a proposition or add initial beliefs")
+        print("1. Expand belief base with a proposition")
         print("2. Contract belief base with a proposition")
         print("3. View current belief base")
         print("4. Test with AGM postulates")
@@ -55,7 +53,7 @@ def main():
             while priority not in map(str, range(1, 11)):
                 print("Invalid priority. Please enter a number between 1 and 10.")
                 priority = input("Enter the priority of the belief (1-10, 5 for don't know): ")
-            belief_base.expand(belief, priority)
+            belief_base.expand(belief, int(priority))
             print("Belief base expanded.")
         elif choice == "2":
             oldBelief = (belief_base.beliefs).copy()

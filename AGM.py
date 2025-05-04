@@ -8,19 +8,24 @@ import copy
 def success(Belief, phi):
     oldBase = copy.deepcopy(Belief)
     newBase = oldBase.expand(phi.premise)
-    return phi in newBase.beliefs
+    newBasePremise = [(belief.premise).upper() for belief, _ in newBase.beliefs]
+    return (phi.premise).upper() in newBasePremise
 
 def inclusion(Belief, phi):
     oldBase = copy.deepcopy(Belief)
     newBase = contract_belief_base(oldBase.beliefs, phi)
-    return set(newBase).issubset(set(oldBase.beliefs))
+    oldSet = set([(belief.premise).upper() for belief, _ in oldBase.beliefs])
+    newSet = set([(belief.premise).upper() for belief, _ in newBase])
+    return newSet.issubset(oldSet)
 
 def vacuity(Belief, phi):
     oldBase = copy.deepcopy(Belief)
     combined_beliefs = Proposition(" and ".join([belief.premise for belief, _ in oldBase.beliefs]))
     if not resolution(combined_beliefs, phi):
         newBase = contract_belief_base(oldBase.beliefs, phi)
-        return newBase == oldBase.beliefs
+        oldBasePremise = [(belief.premise).upper() for belief, _ in oldBase.beliefs]
+        newBasePremise = [(belief.premise).upper() for belief, _ in newBase]
+        return newBasePremise == oldBasePremise
     return True
 
 def consistency(Belief, phi):
@@ -31,12 +36,16 @@ def consistency(Belief, phi):
 def extensionality(Belief, phi1, phi2):
     oldBase = copy.deepcopy(Belief)
     if equivalent(phi1, phi2):
-        return contract_belief_base(oldBase.beliefs, phi1) == contract_belief_base(oldBase.beliefs, phi2)
+        newBasePhi1 = contract_belief_base(oldBase.beliefs, phi1)
+        newBasePhi2 = contract_belief_base(oldBase.beliefs, phi2)
+        phi1Contract = [belief.premise for belief, _ in newBasePhi1]
+        phi2Contract = [belief.premise for belief, _ in newBasePhi2]
+        return phi1Contract == phi2Contract
     return True
 
 def consistent(Belief):
     oldBase = copy.deepcopy(Belief)
-    combined_beliefs = Proposition(" and ".join([belief.premise for belief, _ in oldBase]))
+    combined_beliefs = Proposition("(" + ") and (".join([belief.premise for belief, _ in oldBase]) + ")")
     combined_beliefs.symbolic_form()
     local_sym = {str(sym): sym for sym in combined_beliefs.symbolic}
     local_sym.update({'Eq': sp.Equivalent})
