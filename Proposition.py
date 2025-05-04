@@ -30,8 +30,6 @@ class Proposition:
             # Break out of the loop
             if idx < len(premise) - 1:
                 break
-        # Rewrite the premise as string
-        self.premise = " ".join(self.tokens)
         
         # Initialisation for tokens given as a statement
         idx = 0
@@ -42,7 +40,7 @@ class Proposition:
         # Go through the elements to find statements in tokens
         while idx < len(self.tokens):
             # Look for open paranthesis
-            if "(" in self.tokens[idx]:
+            if "(" in self.tokens[idx] and ")" not in self.tokens[idx]:
                 paranthesesLoop = True
                 idx0 = idx
                 combinedToken = ""
@@ -66,6 +64,9 @@ class Proposition:
                 del self.tokens[idx0:idx]
                 self.nestedToken.append(Proposition(combinedToken))
                 idx = idx0
+            elif "(" in self.tokens[idx] and ")" in self.tokens[idx]:
+                # Remove the paranthesis in the token
+                self.tokens[idx] = self.tokens[idx].replace("(", "").replace(")", "")
             # Iterate through the loop
             idx += 1
         
@@ -77,6 +78,9 @@ class Proposition:
         self.operations = [oper for oper in self.tokens if oper.upper() in operations]
         for idx, operation in enumerate(self.operations):
             self.tokens.remove(operation)
+        
+        # Rewrite the premise as string
+        self.premise = " ".join(self.order)
     
     # Print the premise symbolically
     def __str__(self):
