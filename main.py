@@ -36,8 +36,8 @@ def print_belief_base(belief_base):
 def main():
     print("=== Belief Revision Engine ===")
     belief_base = BeliefBase()
-    belief_base.expand("A and B", 5)
-    belief_base.expand("C if A", 5)
+    #belief_base.expand("A and B", 5)
+    #belief_base.expand("C if A", 5)
 
     while True:
         print("\nOptions:")
