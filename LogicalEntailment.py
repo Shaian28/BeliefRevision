@@ -83,7 +83,7 @@ def find_complementary_pair(clauses):
     return newClauses, False
 
 # Give the resolution alghorithm
-def resolution(KB, phi):
+def resolution(KB, phi, write = False):
     # Convert to CNF
     KBCNF = convert_to_CNF(KB)
 
@@ -127,19 +127,22 @@ def resolution(KB, phi):
                 notEntail = True
     
     # Print the result
-    print(f"KB = {KB}")
-    print(f"φ = {phi}")
+    if write:
+        print(f"KB = {KB}")
+        print(f"φ = {phi}")
     # There is entailment
     if entail:
-        print(f"{KB} ⊨ {phi}")
-        print("KB does entail the result")
+        if write:
+            print(f"{KB} ⊨ {phi}")
+            print("KB does entail the result")
 
         # Return a truth value
         return True
     # There is no entailment
     else:
-        print(f"{KB} ⊭ {phi}")
-        print("KB does not entail the result")
+        if write:
+            print(f"{KB} ⊭ {phi}")
+            print("KB does not entail the result")
 
         # Return a false value
         return False
@@ -148,4 +151,4 @@ def resolution(KB, phi):
 if __name__ == "__main__":
     logic = Proposition("R iff (P or S)")
     inference = Proposition("not P")
-    print(resolution(logic, inference))
+    print(resolution(logic, inference, True))
