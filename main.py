@@ -1,25 +1,32 @@
-
 # main.py
 from BeliefBase import BeliefBase
 from Proposition import Proposition
 from BeliefContraction import contract_belief_base
-import AGM
+from AGM import *
 
-def test_agm_postulates(belief_base, new_prop):
+def test_agm_postulates(belief_base):
+    belief = input("Enter proposition to test out: ")
+    target_phi = Proposition(belief)
+
+    belief = input("Enter an equivalent proposition to test out (for extensionality): ")
+    equivalent_phi = Proposition(belief)
+
     print("\n--- Testing AGM Postulates ---")
 
     # Success Postulate: After revision, the new belief is included
-    print("Success Postulate:", new_prop in belief_base.formulas)
+    print("Success Postulate:", success(belief_base, target_phi))
 
     # Inclusion Postulate: All previous beliefs not contradicting new belief should be retained
-    print("Beliefs retained after revision:", [str(p) for p in belief_base.formulas if p != new_prop])
+    print("Inclusion Postulate:", inclusion(belief_base, target_phi))
 
     # Vacuity Postulate: If the new belief is already in the belief base, no change needed
-    print("Vacuity Postulate:", new_prop in belief_base.formulas)
+    print("Vacuity Postulate:", vacuity(belief_base, target_phi))
 
-    # Consistency: Belief base should remain consistent (mock check)
-    # (Actual consistency checking would need entailment logic applied)
-    print("Consistency: Not formally checked here.")
+    # Consistency Postulate: Belief base should remain consistent
+    print("Consistency Postulate:", consistency(belief_base, target_phi))
+
+    # Extensionality Postulate: If two beliefs are equivalent, they should be interchangeable
+    print("Extensionality Postulate:", extensionality(belief_base, target_phi, equivalent_phi))
 
 def print_belief_base(belief_base):
     print("Current Belief Base:")
@@ -29,8 +36,8 @@ def print_belief_base(belief_base):
 def main():
     print("=== Belief Revision Engine ===")
     belief_base = BeliefBase()
-    belief_base.expand("A and B")
-    belief_base.expand("C if A")
+    belief_base.expand("A and B", 5)
+    belief_base.expand("C if A", 5)
 
     while True:
         print("\nOptions:")
@@ -44,21 +51,26 @@ def main():
 
         if choice == "1":
             belief = input("Enter proposition to expand with: ")
-            belief_base.expand(belief)
+            priority = input("Enter the priority of the belief (1-10, 5 for don't know): ")
+            while priority not in map(str, range(1, 11)):
+                print("Invalid priority. Please enter a number between 1 and 10.")
+                priority = input("Enter the priority of the belief (1-10, 5 for don't know): ")
+            belief_base.expand(belief, priority)
             print("Belief base expanded.")
         elif choice == "2":
-            belief_base_with_priorities = [(belief, idx + 1) for idx, belief in enumerate(belief_base.beliefs)]
+            oldBelief = (belief_base.beliefs).copy()
             belief = input("Enter proposition to contract with: ")
             prop = Proposition(belief)
-            contract_belief = contract_belief_base(belief_base_with_priorities, prop)
-            belief_base.beliefs = [Proposition(belief.premise) for belief, _ in contract_belief]
-            print("Belief base contracted.")
+            contract_belief = contract_belief_base(belief_base.beliefs, prop)
+            belief_base.beliefs = [(Proposition(belief.premise), priority) for belief, priority in contract_belief]
+            if len(oldBelief) == len(belief_base.beliefs):
+                print("No beliefs were contracted.")
+            else:
+                print("Belief base contracted.")
         elif choice == "3":
             print(belief_base)
         elif choice == "4":
-            belief = input("Enter proposition to test out: ")
-            prop = Proposition(belief)
-            test_agm_postulates(belief_base, prop)
+            test_agm_postulates(belief_base)
         elif choice == "5":
             print("Exiting...")
             break

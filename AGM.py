@@ -12,30 +12,26 @@ def success(Belief, phi):
 
 def inclusion(Belief, phi):
     oldBase = copy.deepcopy(Belief)
-    belief_base_with_priorities = [(belief, idx + 1) for idx, belief in enumerate(oldBase.beliefs)]
-    newBase = contract_belief_base(belief_base_with_priorities, phi)
+    newBase = contract_belief_base(oldBase.beliefs, phi)
     return set(newBase).issubset(set(oldBase.beliefs))
 
 def vacuity(Belief, phi):
     oldBase = copy.deepcopy(Belief)
-    belief_base_with_priorities = [(belief, idx + 1) for idx, belief in enumerate(oldBase.beliefs)]
-    combined_beliefs = Proposition(" and ".join([belief.premise for belief in oldBase.beliefs]))
+    combined_beliefs = Proposition(" and ".join([belief.premise for belief, _ in oldBase.beliefs]))
     if not resolution(combined_beliefs, phi):
-        newBase = contract_belief_base(belief_base_with_priorities, phi)
+        newBase = contract_belief_base(oldBase.beliefs, phi)
         return newBase == oldBase.beliefs
     return True
 
 def consistency(Belief, phi):
     oldBase = copy.deepcopy(Belief)
-    belief_base_with_priorities = [(belief, idx + 1) for idx, belief in enumerate(oldBase.beliefs)]
-    newBase = contract_belief_base(belief_base_with_priorities, phi)
+    newBase = contract_belief_base(oldBase.beliefs, phi)
     return consistent(newBase)
 
 def extensionality(Belief, phi1, phi2):
     oldBase = copy.deepcopy(Belief)
-    belief_base_with_priorities = [(belief, idx + 1) for idx, belief in enumerate(oldBase.beliefs)]
     if equivalent(phi1, phi2):
-        return contract_belief_base(belief_base_with_priorities, phi1) == contract_belief_base(belief_base_with_priorities, phi2)
+        return contract_belief_base(oldBase.beliefs, phi1) == contract_belief_base(oldBase.beliefs, phi2)
     return True
 
 def consistent(Belief):
