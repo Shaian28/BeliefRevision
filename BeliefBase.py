@@ -12,6 +12,7 @@ class BeliefBase:
         prop = Proposition(new_sentence)
         self.beliefs.append(prop)
         print(f"Expanded: added '{prop}' to the belief base.")
+        return self  # Return the updated belief base
 
     def __str__(self):
         return "\n".join([f"{idx+1}: {str(b)}" for idx, b in enumerate(self.beliefs)])
