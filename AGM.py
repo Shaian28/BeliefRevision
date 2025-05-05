@@ -44,12 +44,7 @@ def extensionality(Belief, phi1, phi2):
     return True
 
 def consistent(Belief):
-    # If Belief is a list, process it directly; otherwise, assume it has a 'beliefs' attribute
-    if isinstance(Belief, list):
-        base = Belief
-    else:
-        base = Belief.beliefs
-
+    base = Belief.copy()
     combined_beliefs = Proposition("(" + ") and (".join([belief.premise for belief, _ in base]) + ")")
     combined_beliefs.symbolic_form()
     local_sym = {str(sym): sym for sym in combined_beliefs.symbolic}
