@@ -44,12 +44,17 @@ def extensionality(Belief, phi1, phi2):
     return True
 
 def consistent(Belief):
-    base = copy.deepcopy(Belief)
-    combined_beliefs = Proposition("(" + ") and (".join([belief.premise for belief, _ in base.beliefs]) + ")")
+    # If Belief is a list, process it directly; otherwise, assume it has a 'beliefs' attribute
+    if isinstance(Belief, list):
+        base = Belief
+    else:
+        base = Belief.beliefs
+
+    combined_beliefs = Proposition("(" + ") and (".join([belief.premise for belief, _ in base]) + ")")
     combined_beliefs.symbolic_form()
     local_sym = {str(sym): sym for sym in combined_beliefs.symbolic}
     local_sym.update({'Eq': sp.Equivalent})
-    expr = sp.parsing.sympy_parser.parse_expr(combined_beliefs.expression, local_dict = local_sym, evaluate = False)
+    expr = sp.parsing.sympy_parser.parse_expr(combined_beliefs.expression, local_dict=local_sym, evaluate=False)
     return bool(sp.satisfiable(expr))
 
 def equivalent(phi1, phi2):
